@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
+import { mockWaypoints, WaypointType } from "@/lib/mockData/waypoints";
 
 const MapContainer = dynamic(() => import("react-leaflet").then(m => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then(m => m.TileLayer), { ssr: false });
@@ -14,10 +15,13 @@ const Circle = dynamic(() => import("react-leaflet").then(m => m.Circle), { ssr:
 export default function GPSMap() {
   const location = useGeolocation(true);
   const [mapIcon, setMapIcon] = useState<any>(null);
+  const [waypointIcons, setWaypointIcons] = useState<Record<WaypointType, any> | null>(null);
   const [simulatedLocation, setSimulatedLocation] = useState<{lat: number, lng: number, accuracy: number} | null>(null);
 
   useEffect(() => {
     const L = require("leaflet");
+    
+    // Survivor Icon
     const customIcon = L.divIcon({
       className: "custom-div-icon",
       html: "<div style='background-color:#39ff14; width:15px; height:15px; border-radius:50%; box-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14;'></div>",
@@ -25,6 +29,42 @@ export default function GPSMap() {
       iconAnchor: [7.5, 7.5],
     });
     setMapIcon(customIcon);
+
+    // Waypoint Icons (Danger 💀, Safehouse 🛡️, Objective 🎯)
+    const dangerIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: "<div style='background-color:#000; color:#ff0000; border: 2px solid #ff0000; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size: 16px; box-shadow: 0 0 10px #ff0000;'>💀</div>",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+
+    const safehouseIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: "<div style='background-color:#000; color:#0055ff; border: 2px solid #0055ff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size: 16px; box-shadow: 0 0 10px #0055ff;'>🛡️</div>",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+
+    const objectiveIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: "<div style='background-color:#000; color:#ffd700; border: 2px solid #ffd700; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size: 16px; box-shadow: 0 0 10px #ffd700;'>🎯</div>",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+
+    const infoIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: "<div style='background-color:#000; color:#ffffff; border: 2px solid #ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size: 16px;'>ℹ️</div>",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+
+    setWaypointIcons({
+      danger: dangerIcon,
+      safehouse: safehouseIcon,
+      objective: objectiveIcon,
+      info: infoIcon
+    });
   }, []);
 
   const handleSimulateTarget = () => {
@@ -39,7 +79,7 @@ export default function GPSMap() {
   if (!location.loaded && !simulatedLocation) {
     return (
       <div className="h-full w-full flex items-center justify-center bg-[#0a0a0a] border border-zombie-border rounded-lg text-zombie-neon">
-        ACQUIRING SATELLITE SIGNAL...
+        ADQUIRIENDO SEÑAL SATELITAL...
       </div>
     );
   }
@@ -48,16 +88,16 @@ export default function GPSMap() {
   if (location.error && !simulatedLocation) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center bg-[#1a0505] p-6 text-center z-10">
-        <span className="text-zombie-red font-bold text-xl mb-2">GPS SIGNAL BLOCKED</span>
+        <span className="text-zombie-red font-bold text-xl mb-2">SEÑAL GPS BLOQUEADA</span>
         <span className="text-zombie-muted text-sm max-w-sm mb-6">
-          Your browser (Opera/Brave/Edge) is hard-blocking location requests. 
-          Enable it in your browser settings or use the simulated relay for testing.
+          Tu navegador está bloqueando las peticiones de ubicación. 
+          Actívalo en los ajustes de tu navegador o usa el simulador para pruebas.
         </span>
         <button 
           onClick={handleSimulateTarget}
           className="px-6 py-2 bg-zombie-card border border-zombie-neon text-zombie-neon hover:bg-zombie-neon hover:text-black transition-colors rounded text-sm font-bold"
         >
-          ACTIVATE SIMULATOR (MADRID)
+          ACTIVAR SIMULADOR (MADRID)
         </button>
       </div>
     );
@@ -71,11 +111,19 @@ export default function GPSMap() {
 
   const position: [number, number] = [activeLat, activeLng];
 
+  // Colors for waypoint type headings
+  const waypointColors = {
+    danger: "text-zombie-red",
+    safehouse: "text-[#0055ff]",
+    objective: "text-[#ffd700]",
+    info: "text-white"
+  };
+
   return (
     <div className="relative h-full w-full z-0 bg-[#0a0a0a]">
       <MapContainer 
         center={position} 
-        zoom={18} 
+        zoom={15} 
         scrollWheelZoom={true} 
         style={{ height: "100%", width: "100%", zIndex: 1 }}
       >
@@ -88,9 +136,10 @@ export default function GPSMap() {
           <>
             <Marker position={position} icon={mapIcon}>
               <Popup>
-                <div className="text-center font-bold text-black">
-                  {isSimulated ? "SIMULATED SURVIVOR" : "SURVIVOR LOCATION"}
+                <div className="text-center font-bold text-black border-b border-gray-300 pb-1 mb-1">
+                  {isSimulated ? "SUPERVIVIENTE SIMULADO" : "TU UBICACIÓN"}
                 </div>
+                <div className="text-xs text-gray-700">Sistema Activo</div>
               </Popup>
             </Marker>
             
@@ -103,11 +152,34 @@ export default function GPSMap() {
             )}
           </>
         )}
+
+        {/* Render Waypoints */}
+        {waypointIcons && mockWaypoints.map((wp) => (
+          <Marker 
+            key={wp.id} 
+            position={[wp.coordinates.lat, wp.coordinates.lng]} 
+            icon={waypointIcons[wp.type]}
+          >
+            <Popup className="zombie-poi-popup">
+              <div className="bg-[#0a0a0a] text-white p-2 min-w-[200px]">
+                <div className={`font-bold border-b border-zombie-border pb-2 mb-2 uppercase ${waypointColors[wp.type]}`}>
+                  {wp.name}
+                </div>
+                <div className="text-xs text-zombie-muted leading-relaxed">
+                  {wp.description}
+                </div>
+                <div className="mt-3 text-[10px] text-zombie-border mono text-right">
+                  ID: {wp.id} | T: {wp.type.toUpperCase()}
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
       
       {/* Overlay HUD */}
       <div className="absolute top-4 right-4 z-[400] bg-black/80 border border-zombie-border rounded p-2 text-xs text-zombie-neon font-mono shadow-lg text-right">
-        {isSimulated && <div className="text-zombie-red font-bold mb-1">SIMULATED OVERRIDE</div>}
+        {isSimulated && <div className="text-zombie-red font-bold mb-1">ANULACIÓN SIMULADA</div>}
         LAT: {activeLat.toFixed(5)}<br/>
         LNG: {activeLng.toFixed(5)}<br/>
         {activeAcc && <>ERR: ±{Math.round(activeAcc)}m</>}

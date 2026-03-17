@@ -11,7 +11,7 @@ export default function Home() {
         </h1>
         
         <p className="text-xl md:text-2xl text-zombie-muted max-w-lg">
-          The outbreak has started. Your survival depends on teamwork, speed, and real-time tracking.
+          La infección ha comenzado. Tu supervivencia depende del trabajo en equipo, la velocidad y el rastreo en tiempo real.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-8">
@@ -19,19 +19,19 @@ export default function Home() {
             href="/login"
             className="px-8 py-4 bg-zombie-card border border-zombie-border rounded hover:bg-[#1f1f1f] hover:border-zombie-neon transition-all duration-300 text-lg font-medium shadow-[0_4px_14px_0_rgba(0,0,0,0.39)] hover:shadow-[0_0_15px_rgba(57,255,20,0.3)]"
           >
-            LOGIN
+            INICIAR SESIÓN
           </Link>
           <Link 
             href="/register"
             className="px-8 py-4 bg-zombie-neon text-black rounded hover:bg-[#32e612] transition-colors duration-300 text-lg font-bold shadow-[0_0_15px_rgba(57,255,20,0.4)]"
           >
-            REGISTER SURVIVOR
+            REGISTRAR SUPERVIVIENTE
           </Link>
         </div>
       </main>
 
       <footer className="absolute bottom-6 text-zombie-border text-sm">
-        v0.2.0 • Zombie Survival Tracking System
+        v0.3.0 • Sistema de Rastreo de Sobrevivientes
       </footer>
     </div>
   );

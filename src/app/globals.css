@@ -22,3 +22,16 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
 }
+
+/* Leaflet Overrides for Dark Theme */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: #0a0a0a !important;
+  color: white !important;
+  border: 1px solid #262626 !important;
+}
+
+.zombie-poi-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: max-content !important;
+  max-width: 250px;
+}
